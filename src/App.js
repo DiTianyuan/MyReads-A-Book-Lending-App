@@ -1,13 +1,27 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
 import CreateMainPage from './CreateMainPage';
-import AddBooks from './AddBooks';
+import CreateSearchPage from './CreateSearchPage';
 import * as BooksAPI from './BooksAPI';
 import './App.css';
 
 class BooksApp extends React.Component {
   state = {
     books: [],
+    bookshelfs: [
+      {
+        "title":"Currently Reading",
+        "id":"currentlyReading"
+      },
+      {
+        "title":"Want to Read",
+        "id":"wantToRead"
+      },
+      {
+        "title":"Read",
+        "id":"read"
+      }
+    ]
   }
 
   componentDidMount() {
@@ -19,17 +33,18 @@ class BooksApp extends React.Component {
   searchBooks(query) {
     if (query !== "") {
       BooksAPI.search(query).then((books) => {
-        // filter一下books，将id不存在于原state.books的book添加到state.books
-        this.setState(state => ({
-          books: state.books.concat(books.filter(book => {
-            for (var i = 0, k = state.books.length; i < k; ++i) {
-              if (state.books[i].id === book.id) {
-                return false;
+        if (Array.isArray(books)) {
+          this.setState(state => ({
+            books: state.books.concat(books.filter(book => {
+              for (var i = 0, k = state.books.length; i < k; ++i) {
+                if (state.books[i].id === book.id) {
+                  return false;
+                }
               }
-            }
-            return true;
-          }))
-        }));
+              return true;
+            }))
+          }));
+        }
       })
     }
   }
@@ -40,10 +55,11 @@ class BooksApp extends React.Component {
         <Route exact path='/' render={() => (
           <CreateMainPage
             books={this.state.books}
+            bookshelfs={this.state.bookshelfs}
           />
         )}/>
         <Route path='/search' render={() => (
-          <AddBooks
+          <CreateSearchPage
             books={this.state.books}
             onSearchBooks={(query)=>{this.searchBooks(query)}}
           />
